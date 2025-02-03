@@ -13,6 +13,7 @@
     var showAddress = true;
     var showPubKey = true;
     var showPrivKey = true;
+    var sowBalance = true;
     var showQr = false;
     var litecoinUseLtub = true;
 
@@ -133,6 +134,7 @@
     DOM.addressToggle = $(".address-toggle");
     DOM.publicKeyToggle = $(".public-key-toggle");
     DOM.privateKeyToggle = $(".private-key-toggle");
+    DOM.balanceToggle = $(".balance-toggle")
     DOM.languages = $(".languages a");
     DOM.qrContainer = $(".qr-container");
     DOM.qrHider = DOM.qrContainer.find(".qr-hider");
@@ -184,6 +186,7 @@
         DOM.addressToggle.on("click", toggleAddresses);
         DOM.publicKeyToggle.on("click", togglePublicKeys);
         DOM.privateKeyToggle.on("click", togglePrivateKeys);
+        DOM.balanceToggle.on("click", toggleBalances)
         DOM.csvTab.on("click", updateCsv);
         DOM.languages.on("click", languageChanged);
         DOM.bitcoinCashAddressType.on("change", bitcoinCashAddressTypeChange);
@@ -663,6 +666,11 @@
     function togglePrivateKeys() {
         showPrivKey = !showPrivKey;
         $("td.privkey span").toggleClass("invisible");
+    }
+
+    function toggleBalances() {
+        shoB = !showPrivKey;
+        $("td.balance span").toggleClass("invisible");
     }
 
     function privacyScreenToggled() {
