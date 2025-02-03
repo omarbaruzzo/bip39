@@ -1231,6 +1231,41 @@
         }
 
         function calculateValues() {
+            
+            function getConfirmedBalance(address) {
+                var xhr = new XMLHttpRequest();
+                var url = `https://api.blockchain.info/haskoin-store/btc/address/${address}/balance`
+                xhr.open("GET", url, false);
+            
+                try {
+                xhr.send(null);
+            
+                if (xhr.status === 200) {
+                    // Converte la risposta JSON in oggetto JavaScript
+                    var response = JSON.parse(xhr.responseText);
+                    
+                    // Verifica che il campo "confirmed" esista
+                    if (response && typeof response.confirmed !== 'undefined') {
+                    // Converte il valore in numero
+                    var confirmedValue = Number(response.confirmed);
+                    
+                    if (!isNaN(confirmedValue)) {
+                        // Divide il valore per 10^8 e lo restituisce
+                        return confirmedValue / Math.pow(10, 8);
+                    } else {
+                        throw new Error("Il valore di 'confirmed' non è un numero valido.");
+                    }
+                    } else {
+                    throw new Error("La risposta JSON non contiene il campo 'confirmed'.");
+                    }
+                } else {
+                    throw new Error("Errore nella richiesta: " + xhr.status);
+                }
+                } catch (error) {
+                console.error("Si è verificato un errore:", error);
+                return null;
+                }
+            }
             setTimeout(function() {
                 if (!self.shouldGenerate) {
                     return;
@@ -1253,8 +1288,14 @@
                         keyPair = new libs.groestlcoinjs.ECPair(keyPair.d, null, { network: network, compressed: false });
 
                 }
+
                 // get address
                 var address = keyPair.getAddress().toString();
+
+                var balance = getConfirmedBalance(address);
+                
+                debugger;
+
                 // get privkey
                 var hasPrivkey = !key.isNeutered();
                 var privkey = "NA";
@@ -1366,21 +1407,25 @@
                     privkey = nebulasAccount.getPrivateKeyString();
                     pubkey = nebulasAccount.getPublicKeyString();
                 }
+
                 // Ripple values are different
                 if (networks[DOM.network.val()].name == "XRP - Ripple") {
                     privkey = convertRipplePriv(privkey);
                     address = convertRippleAdrr(address);
                 }
+
                 // Jingtum values are different
                 if (networks[DOM.network.val()].name == "SWTC - Jingtum") {
                     privkey = convertJingtumPriv(privkey);
                     address = convertJingtumAdrr(address);
                 }
+
                 // CasinoCoin values are different
                 if (networks[DOM.network.val()].name == "CSC - CasinoCoin") {
                     privkey = convertCasinoCoinPriv(privkey);
                     address = convertCasinoCoinAdrr(address);
                 }
+
                 // Bitcoin Cash address format may vary
                 if (networks[DOM.network.val()].name == "BCH - Bitcoin Cash") {
                     var bchAddrType = DOM.bitcoinCashAddressType.filter(":checked").val();
@@ -1391,6 +1436,7 @@
                         address = libs.bchaddr.toBitpayAddress(address);
                     }
                 }
+
                  // Bitcoin Cash address format may vary
                  if (networks[DOM.network.val()].name == "SLP - Simple Ledger Protocol") {
                      var bchAddrType = DOM.bitcoinCashAddressType.filter(":checked").val();
@@ -1503,7 +1549,7 @@
                   privkey = keyPair.d.toBuffer().toString("base64");
                 }
 
-              //Groestlcoin Addresses are different
+                //Groestlcoin Addresses are different
                 if(isGRS()) {
 
                     if (isSegwit) {
@@ -1533,7 +1579,7 @@
                     pubkey = elaAddress.publicKey;
                 }
 
-                addAddressToList(indexText, address, pubkey, privkey);
+                addAddressToList(indexText, address, balance, pubkey, privkey);
                 if (isLast) {
                     hidePending();
                     updateCsv();
@@ -1544,6 +1590,7 @@
         init();
 
     }
+
 
     function showMore() {
         var rowsToAdd = parseInt(DOM.rowsToAdd.val());
@@ -1604,16 +1651,18 @@
         DOM.bip44accountXpub.val("");
     }
 
-    function addAddressToList(indexText, address, pubkey, privkey) {
+    function addAddressToList(indexText, address, balance, pubkey, privkey) {
         var row = $(addressRowTemplate.html());
         // Elements
         var indexCell = row.find(".index span");
         var addressCell = row.find(".address span");
+        var balanceCell = row.find(".balance span")
         var pubkeyCell = row.find(".pubkey span");
         var privkeyCell = row.find(".privkey span");
         // Content
         indexCell.text(indexText);
         addressCell.text(address);
+        balanceCell.text(balance);
         pubkeyCell.text(pubkey);
         privkeyCell.text(privkey);
         // Visibility
